@@ -23,7 +23,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(current_directory, 'data.txt')
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\buiho\Desktop\toolRD\fixx\build\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"/home/anhnv/Documents/python_tt/tooltestBLE/build/assets/frame0")
 
 
 def relative_to_assets(path: str) -> Path:
@@ -32,7 +32,7 @@ def relative_to_assets(path: str) -> Path:
 
 import random
 
-from paho.mqtt import client as mqtt_client
+import paho.mqtt.client as mqtt_client
 
 # broker = 'broker.emqx.io'
 # port = 1883
@@ -70,6 +70,7 @@ error_size = [0,0,0,0,0]
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
+            client.subscribe(topic)
             print("Connected to MQTT Broker!")
         else:
             print("Failed to connect, return code %d\n", rc)
@@ -545,5 +546,7 @@ if __name__ == '__main__':
     mqtt_thread.start()
 
     # Chờ cả hai luồng hoàn thành
-    gui_thread.join()
-    mqtt_thread.join()
+    # gui_thread.join()
+    # mqtt_thread.join()
+    while True:
+        time.sleep(10)
