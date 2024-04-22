@@ -39,7 +39,7 @@ import paho.mqtt.client as mqtt_client
 # topic = "python/mqtt"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
-broker = '10.10.10.1'
+broker = 'localhost'
 port = 1883
 topic = "/tooltest/hc/app/json_req"
 username ="RD"
@@ -67,147 +67,6 @@ sizes = [product_data["total"], 0]
 error_labels = ["RSSI", "Cảm ứng", "Tải", "RGB", "Khác"]
 error_size = [0,0,0,0,0]
 # Khai báo biến toàn cục cho canvas
-def connect_mqtt() -> mqtt_client:
-    def on_connect(client, userdata, flags, rc):
-        if rc == 0:
-            client.subscribe(topic)
-            print("Connected to MQTT Broker!")
-        else:
-            print("Failed to connect, return code %d\n", rc)
-
-    client = mqtt_client.Client(client_id)
-    client.username_pw_set(username, password)
-    client.on_connect = on_connect
-    client.connect(broker, port)
-    return client
-
-
-def subscribe(client: mqtt_client):
-    def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        # Save the values to a text file
-        message = json.loads(msg.payload)
-        id = message["data"]["addr"]
-        version = "1.2.1"
-        status = ""
-        if all(value == 0 for key, value in message.items() if key.startswith('touch') or key.startswith('load')):
-            status = "Thành công"
-        else:
-            status = "Thất bại"
-
-        row_data = [id, version, status]
-        with open(file_path, 'a') as file:
-            file.write(','.join(map(str, row_data)) + '\n')
-
-        message = json.loads(msg.payload)
-        # Tạo danh sách các key bắt đầu với "touch" mà có giá trị không phải là 0
-        failed_touches = [key.split('touch')[1] for key, value in message["data"].items() if
-                          key.startswith('touch') and value != 0]
-        failed_loads = [key.split('load')[1] for key, value in message["data"].items() if
-                        key.startswith('load') and value != 0]
-        failed_rgbs = [key.split('rgb')[1] for key, value in message["data"].items() if
-                       key.startswith('rgb') and value != 0]
-        # Xác định trạng thái dựa trên danh sách các key bị lỗi
-        if failed_touches:
-            mqtt_data['touch'] = f"Thất bại({','.join(failed_touches)})"
-        else:
-            mqtt_data['touch'] = "Thành công"
-
-        # Xác định trạng thái dựa trên danh sách các key bị lỗi
-        if failed_loads:
-            mqtt_data['load'] = f"Thất bại({','.join(failed_loads)})"
-        else:
-            mqtt_data['load'] = "Thành công"
-
-        # Xác định trạng thái dựa trên danh sách các key bị lỗi
-        if failed_rgbs:
-            mqtt_data['rgb'] = f"Thất bại({','.join(failed_rgbs)})"
-        else:
-            mqtt_data['rgb'] = "Thành công"
-        mqtt_data['id'] = message["data"]["addr"]
-        mqtt_data['rssi'] = message["data"]["rssi"]
-        mqtt_data['status'] = "Thành công" if (all(value == 0 for key, value in message["data"].items() if
-                                                   key.startswith('touch') or key.startswith('load') or key.startswith(
-                                                       'rgb'))
-                                               and message["data"]["rssi"] >= -60) else "Thất bại"
-
-        false_count = 0
-        receivedError = {
-            "false_rssi": 0,
-            "false_touch": 0,
-            "false_load": 0,
-            "false_rgb": 0,
-            "false_other": 0
-        }
-        # Xác định loại lỗi từ dữ liệu MQTT và cập nhật product_data
-        if message["data"]["rssi"] < -60:
-            receivedError["false_rssi"] = 1
-            false_count += 1
-
-        if any(value != 0 for key, value in message["data"].items() if key.startswith('touch')):
-            receivedError["false_touch"] = 1
-            false_count += 1
-
-        if any(value != 0 for key, value in message["data"].items() if key.startswith('load')):
-            receivedError["false_load"] = 1
-            false_count += 1
-
-        if any(value != 0 for key, value in message["data"].items() if key.startswith('rgb')):
-            receivedError["false_rgb"] = 1
-            false_count += 1
-
-        # Nếu có nhiều hơn hai loại lỗi, thêm vào false_other
-        if false_count > 1:
-            receivedError["false_other"] = 1
-            receivedError["false_rssi"] = 0
-            receivedError["false_touch"] = 0
-            receivedError["false_load"] = 0
-            receivedError["false_rgb"] = 0
-
-        product_data["false_other"] = product_data["false_other"] + receivedError["false_other"]
-        product_data["false_rssi"] = product_data["false_rssi"] + receivedError["false_rssi"]
-        product_data["false_touch"] = product_data["false_touch"] + receivedError["false_touch"]
-        product_data["false_load"] = product_data["false_load"] + receivedError["false_load"]
-        product_data["false_rgb"] = product_data["false_rgb"] + receivedError["false_rgb"]
-        product_data["total"] += 1  # Tăng tổng số lần kiểm tra
-        sizes[1] = (
-            product_data["false_rssi"] + product_data["false_touch"] + product_data["false_load"] + product_data[
-        "false_rgb"] + product_data["false_other"])
-
-        sizes[0] = product_data["total"] - sizes[1]
-        # In ra product_data để kiểm tra
-        print(product_data)
-        print(sizes)
-        update_pie_chart(fig=fig_2, sizes=sizes)
-        update_error_pie_chart(fig3=fig_3, error_size = [product_data["false_rssi"],product_data["false_touch"],product_data["false_load"],product_data["false_rgb"], product_data["false_other"]])
-        update_chart_data(product_data)
-        # update_polar_chart(fig=fig, ax=ax, chart_data=chart_data)
-        mqtt_data['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # Thời gian nhận bản tin MQTT
-
-        # Cập nhật bảng
-        update_table()
-        canvas.itemconfig(text_touch, text=mqtt_data['touch'],
-                          fill="#64DA5A" if "Thành công" in mqtt_data['touch'] else "#fc2c03")
-        canvas.itemconfig(text_rgb, text=mqtt_data['rgb'],
-                          fill="#64DA5A" if "Thành công" in mqtt_data['rgb'] else "#fc2c03")
-        canvas.itemconfig(text_rssi, text=str(mqtt_data['rssi']),
-                          fill="#64DA5A" if mqtt_data['rssi'] >= -60 else "#fc2c03")
-        canvas.itemconfig(text_load, text=mqtt_data['load'],
-                          fill="#64DA5A" if "Thành công" in mqtt_data['load'] else "#fc2c03")
-        canvas.itemconfig(text_status, text=mqtt_data['status'],
-                          fill="#64DA5A" if "Thành công" in mqtt_data['status'] else "#fc2c03")
-        canvas.itemconfig(text_total_value, text=product_data["total"])
-        canvas.itemconfig(text_fail_value, text=sizes[1])
-        canvas.itemconfig(text_success_value, text=sizes[0])
-
-    client.subscribe(topic)
-    client.on_message = on_message
-
-
-def run():
-    client = connect_mqtt()
-    subscribe(client)
-    client.loop_forever()
 
 def drawUI():
     window = Tk()
@@ -274,7 +133,7 @@ def drawUI():
         135.0,
         148.0,
         anchor="nw",
-        text="Công tắc cảm ứng chữ nhật CTCU.BLE.CN.04T MN",
+        text="Công tắc cảm ứng chữ nhật CTCU.BLE.CN.04T",
         fill="#000000",
         font=("Inter Bold", 30 * -1)
     )
@@ -284,6 +143,33 @@ def drawUI():
         463.0,
         837.0,
         image=image_image_7
+    )
+
+    canvas.create_text(
+        1520.0,
+        10.0,
+        anchor="nw",
+        text="Nhân viên : Nguyễn Việt Anh",
+        fill="#000000",
+        font=("Inter Bold", 25 * -1, "italic")
+    )
+
+    canvas.create_text(
+        1520.0,
+        50.0,
+        anchor="nw",
+        text="Mã nhân viên : RD02393",
+        fill="#000000",
+        font=("Inter Bold", 25 * -1, "italic")
+    )
+
+    canvas.create_text(
+        1520.0,
+        90.0,
+        anchor="nw",
+        text="Số điện thoại : 0988768403",
+        fill="#000000",
+        font=("Inter Bold", 25 * -1, "italic")
     )
 
     canvas.create_text(
@@ -454,7 +340,9 @@ def drawUI():
     canvas_4.draw()
     canvas_4.get_tk_widget().place(x=1400.0, y=660.0)
     # window.resizable(False, False)
+    readDataStartUp()
     window.mainloop()
+    
 
 
 def update_pie_chart(fig, sizes):
@@ -533,17 +421,178 @@ def update_polar_chart(fig, ax, chart_data):
     # Vẽ lại biểu đồ polar
     fig.canvas.draw()
 
+def connect_mqtt() -> mqtt_client:
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            client.subscribe(topic)
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
+
+    client = mqtt_client.Client(client_id)
+    client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
+
+def handleMsp(msg):
+    # message = json.loads(msg)
+    # id = message["data"]["addr"]
+    # version = "1.2.1"
+    # status = ""
+    # if all(value == 0 for key, value in message.items() if key.startswith('touch') or key.startswith('load')):
+    #     status = "Thành công"
+    # else:
+    #     status = "Thất bại"
+
+    # row_data = [id, version, status]
+    # with open(file_path, 'a') as file:
+    #     file.write(','.join(map(str, row_data)) + '\n')
+
+    message = json.loads(msg)
+    # Tạo danh sách các key bắt đầu với "touch" mà có giá trị không phải là 0
+    failed_touches = [key.split('touch')[1] for key, value in message["data"].items() if
+                        key.startswith('touch') and value != 0]
+    failed_loads = [key.split('load')[1] for key, value in message["data"].items() if
+                    key.startswith('load') and value != 0]
+    failed_rgbs = [key.split('rgb')[1] for key, value in message["data"].items() if
+                    key.startswith('rgb') and value != 0]
+    # Xác định trạng thái dựa trên danh sách các key bị lỗi
+    if failed_touches:
+        mqtt_data['touch'] = f"Thất bại({','.join(failed_touches)})"
+    else:
+        mqtt_data['touch'] = "Thành công"
+
+    # Xác định trạng thái dựa trên danh sách các key bị lỗi
+    if failed_loads:
+        mqtt_data['load'] = f"Thất bại({','.join(failed_loads)})"
+    else:
+        mqtt_data['load'] = "Thành công"
+
+    # Xác định trạng thái dựa trên danh sách các key bị lỗi
+    if failed_rgbs:
+        mqtt_data['rgb'] = f"Thất bại({','.join(failed_rgbs)})"
+    else:
+        mqtt_data['rgb'] = "Thành công"
+    mqtt_data['id'] = message["data"]["addr"]
+    mqtt_data['rssi'] = message["data"]["rssi"]
+    mqtt_data['status'] = "Thành công" if (all(value == 0 for key, value in message["data"].items() if
+                                                key.startswith('touch') or key.startswith('load') or key.startswith(
+                                                    'rgb'))
+                                            and message["data"]["rssi"] >= -60) else "Thất bại"
+
+    false_count = 0
+    receivedError = {
+        "false_rssi": 0,
+        "false_touch": 0,
+        "false_load": 0,
+        "false_rgb": 0,
+        "false_other": 0
+    }
+    # Xác định loại lỗi từ dữ liệu MQTT và cập nhật product_data
+    if message["data"]["rssi"] < -60:
+        receivedError["false_rssi"] = 1
+        false_count += 1
+
+    if any(value != 0 for key, value in message["data"].items() if key.startswith('touch')):
+        receivedError["false_touch"] = 1
+        false_count += 1
+
+    if any(value != 0 for key, value in message["data"].items() if key.startswith('load')):
+        receivedError["false_load"] = 1
+        false_count += 1
+
+    if any(value != 0 for key, value in message["data"].items() if key.startswith('rgb')):
+        receivedError["false_rgb"] = 1
+        false_count += 1
+
+    # Nếu có nhiều hơn hai loại lỗi, thêm vào false_other
+    if false_count > 1:
+        receivedError["false_other"] = 1
+        receivedError["false_rssi"] = 0
+        receivedError["false_touch"] = 0
+        receivedError["false_load"] = 0
+        receivedError["false_rgb"] = 0
+
+    product_data["false_other"] = product_data["false_other"] + receivedError["false_other"]
+    product_data["false_rssi"] = product_data["false_rssi"] + receivedError["false_rssi"]
+    product_data["false_touch"] = product_data["false_touch"] + receivedError["false_touch"]
+    product_data["false_load"] = product_data["false_load"] + receivedError["false_load"]
+    product_data["false_rgb"] = product_data["false_rgb"] + receivedError["false_rgb"]
+    product_data["total"] += 1  # Tăng tổng số lần kiểm tra
+    sizes[1] = (
+        product_data["false_rssi"] + product_data["false_touch"] + product_data["false_load"] + product_data[
+    "false_rgb"] + product_data["false_other"])
+
+    sizes[0] = product_data["total"] - sizes[1]
+    # In ra product_data để kiểm tra
+    print(product_data)
+    print(sizes)
+    update_pie_chart(fig=fig_2, sizes=sizes)
+    update_error_pie_chart(fig3=fig_3, error_size = [product_data["false_rssi"],product_data["false_touch"],product_data["false_load"],product_data["false_rgb"], product_data["false_other"]])
+    update_chart_data(product_data)
+    # update_polar_chart(fig=fig, ax=ax, chart_data=chart_data)
+    mqtt_data['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # Thời gian nhận bản tin MQTT
+
+    # Cập nhật bảng
+    update_table()
+    canvas.itemconfig(text_touch, text=mqtt_data['touch'],
+                        fill="#64DA5A" if "Thành công" in mqtt_data['touch'] else "#fc2c03")
+    canvas.itemconfig(text_rgb, text=mqtt_data['rgb'],
+                        fill="#64DA5A" if "Thành công" in mqtt_data['rgb'] else "#fc2c03")
+    canvas.itemconfig(text_rssi, text=str(mqtt_data['rssi']),
+                        fill="#64DA5A" if mqtt_data['rssi'] >= -60 else "#fc2c03")
+    canvas.itemconfig(text_load, text=mqtt_data['load'],
+                        fill="#64DA5A" if "Thành công" in mqtt_data['load'] else "#fc2c03")
+    canvas.itemconfig(text_status, text=mqtt_data['status'],
+                        fill="#64DA5A" if "Thành công" in mqtt_data['status'] else "#fc2c03")
+    canvas.itemconfig(text_total_value, text=product_data["total"])
+    canvas.itemconfig(text_fail_value, text=sizes[1])
+    canvas.itemconfig(text_success_value, text=sizes[0])   
+
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        
+        # Save the values to a text file
+        with open(file_path, 'a') as file:
+            file.write(msg.payload.decode() + '\n')
+        handleMsp(msg.payload)
+
+    client.subscribe(topic)
+    client.on_message = on_message
+
+def run():
+    client = connect_mqtt()
+    subscribe(client)
+    client.loop_forever()
+
+def readDataStartUp():
+    if os.path.exists(file_path):
+        print("Messages stored in file:")
+        with open(file_path, "r") as file:
+            for line in file:
+                print(line.strip())
+                handleMsp(str(line.strip()))
+    else:
+        print("No stored messages found.")
 
 if __name__ == '__main__':
     # Tạo hai luồng riêng biệt để chạy GUI và MQTT client
     gui_thread = threading.Thread(target=drawUI)
+    print("tp1")
     mqtt_thread = threading.Thread(target=run)
+    print("tp2")
     gui_thread.daemon = True
+    print("tp3")
     mqtt_thread.daemon = True
+    print("tp4")
 
     # Khởi động cả hai luồng
     gui_thread.start()
+    print("tp5")
     mqtt_thread.start()
+    print("tp6")
 
     # Chờ cả hai luồng hoàn thành
     # gui_thread.join()
