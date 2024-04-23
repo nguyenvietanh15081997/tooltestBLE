@@ -49,22 +49,22 @@ product_data = {
     "false_rssi": 0,
     "false_touch": 0,
     "false_load": 0,
-    "false_rgb": 0,
-    "false_other": 0
+    "false_rgb": 0
 }
 
 mqtt_data = {}
 chart_data = {
-    "value": [472, 356, 278, 412, 500],
-    "type": ["RSSI", "Cảm ứng", "Tải", "RGB", "Khác"],
-    "angles": [0, 1.2566370614, 2.5132741228, 3.7699111843, 5.0265482457],
-    "rotation": [-72, -36, 0, 36, 72],
-    "colors": ["#439A97", "#56a8a5", "#6cbdba", "#12b2ed", "#008fc4"]
+    "value": [472, 356, 278, 412],
+    "type": ["RSSI", "Cảm ứng", "Tải", "LED"],
+    "angles": [0, 1.2566370614, 2.5132741228, 3.7699111843],
+    "rotation": [-72, -36, 0, 36],
+    # "colors": ["#439A97", "#56a8a5", "#6cbdba", "#12b2ed", "#008fc4"]
+    "colors": ["hotpink", "lightgreen", "lightskyblue", "khaki"]
 }
-labels = ['Hợp cách', '']
+labels = ['', ''] # label chart hợp cách
 sizes = [product_data["total"], 0]
 
-error_labels = ["RSSI", "Cảm ứng", "Tải", "RGB", "Khác"]
+error_labels = ["RSSI", "Cảm ứng", "Tải", "LED"] # label chart type error
 error_size = [0,0,0,0,0]
 # Khai báo biến toàn cục cho canvas
 
@@ -151,7 +151,7 @@ def drawUI():
         anchor="nw",
         text="Nhân viên : Nguyễn Việt Anh",
         fill="#000000",
-        font=("Inter Bold", 25 * -1, "italic")
+        font=("Inter Bold", 20 * -1, "italic")
     )
 
     canvas.create_text(
@@ -160,7 +160,7 @@ def drawUI():
         anchor="nw",
         text="Mã nhân viên : RD02393",
         fill="#000000",
-        font=("Inter Bold", 25 * -1, "italic")
+        font=("Inter Bold", 20 * -1, "italic")
     )
 
     canvas.create_text(
@@ -169,7 +169,25 @@ def drawUI():
         anchor="nw",
         text="Số điện thoại : 0988768403",
         fill="#000000",
-        font=("Inter Bold", 25 * -1, "italic")
+        font=("Inter Bold", 20 * -1, "italic")
+    )
+
+    canvas.create_text(
+        1190.0,
+        643.0,
+        anchor="nw",
+        text="Hợp cách",
+        fill="#000000",
+        font=("Inter Bold", 15 * -1)
+    )
+
+    canvas.create_text(
+        1565.0,
+        643.0,
+        anchor="nw",
+        text="Tỷ lệ các lỗi",
+        fill="#000000",
+        font=("Inter Bold", 15 * -1)
     )
 
     canvas.create_text(
@@ -183,11 +201,11 @@ def drawUI():
 
     global text_rssi
     text_rssi = canvas.create_text(
-        164.0,
+        160.0,
         696.0,
         anchor="nw",
-        text="Thành công",
-        fill="#000000",
+        text="PASS",
+        fill="lime",
         font=("Inter Bold", 36 * -1)
     )
 
@@ -195,34 +213,34 @@ def drawUI():
         60.0,
         773.0,
         anchor="nw",
-        text="Cảm ứng:",
+        text="CẢM ỨNG:",
         fill="#000000",
         font=("Inter Bold", 36 * -1)
     )
     global text_touch
     text_touch = canvas.create_text(
-        230.0,
+        260.0,
         773.0,
         anchor="nw",
-        text="Thành công",
-        fill="#000000",
+        text="PASS",
+        fill="lime",
         font=("Inter Bold", 36 * -1)
     )
     canvas.create_text(
         60.0,
         850.0,
         anchor="nw",
-        text="Tải:",
+        text="TẢI:",
         fill="#000000",
         font=("Inter Bold", 36 * -1)
     )
     global text_load
     text_load = canvas.create_text(
-        120.0,
+        140.0,
         850.0,
         anchor="nw",
-        text="Thành công",
-        fill="#000000",
+        text="PASS",
+        fill="lime",
         font=("Inter Bold", 36 * -1)
     )
 
@@ -230,7 +248,7 @@ def drawUI():
         60.0,
         927.0,
         anchor="nw",
-        text="RGB:",
+        text="LED:",
         fill="#000000",
         font=("Inter Bold", 36 * -1)
     )
@@ -239,8 +257,8 @@ def drawUI():
         160.0,
         927.0,
         anchor="nw",
-        text="Thành công",
-        fill="#000000",
+        text="PASS",
+        fill="lime",
         font=("Inter Bold", 36 * -1)
     )
     global text_status
@@ -248,23 +266,23 @@ def drawUI():
         589.0,
         785.0,
         anchor="nw",
-        text="Thành Công",
-        fill="#64DA5A",
+        text="PASS",
+        fill="lime",
         font=("Inter Bold", 48 * -1)
     )
 
     text_total = canvas.create_text(
-        1000.0,
+        1100.0,
         550.0,
         anchor="nw",
-        text="Tổng:",
+        text="TỔNG :",
         fill="#000000",
         font=("Inter Bold", 20 * -1)
     )
 
     global text_total_value
     text_total_value = canvas.create_text(
-        1055.0,
+        1190.0,
         550.0,
         anchor="nw",
         text="0",
@@ -273,43 +291,43 @@ def drawUI():
     )
 
     text_success = canvas.create_text(
-        1200.0,
+        1380.0,
         550.0,
         anchor="nw",
-        text="Thành Công: ",
-        fill="#000000",
+        text="PASS :",
+        fill="lime",
         font=("Inter Bold", 20 * -1)
     )
     global text_success_value
     text_success_value = canvas.create_text(
-        1315.0,
+        1470.0,
         550.0,
         anchor="nw",
         text="0",
-        fill="#000000",
+        fill="lime",
         font=("Inter Bold", 20 * -1)
     )
 
     text_fail = canvas.create_text(
-        1400.0,
+        1630.0,
         550.0,
         anchor="nw",
-        text="Thất bại: ",
-        fill="#000000",
+        text="FAIL :",
+        fill="orangered",
         font=("Inter Bold", 20 * -1)
     )
     global text_fail_value
     text_fail_value = canvas.create_text(
-        1480.0,
+        1720.0,
         550.0,
         anchor="nw",
         text="0",
-        fill="#000000",
+        fill="orangered",
         font=("Inter Bold", 20 * -1)
     )
 
     global table
-    table_columns = ["ID", "RSSI", "Cảm ứng", "Tải", "RGB", "Trạng thái", "Time"]
+    table_columns = ["ID", "RSSI", "Cảm ứng", "Tải", "LED", "Trạng thái", "Time"]
     table_data = []
     table = ttk.Treeview(master=window, columns=table_columns, show="headings")
 
@@ -367,7 +385,7 @@ def update_error_pie_chart(fig3, error_size):
 
         # Cập nhật dữ liệu mới cho biểu đồ pie
         plt.clf()  # Xóa dữ liệu cũ trong biểu đồ
-        explode = [0, 0, 0, 0, 0, ]
+        explode = [0, 0, 0, 0]
         plt.pie(error_size, explode=explode, labels=error_labels, shadow=True, autopct='%1.1f%%')
         plt.axis('equal')
         # Vẽ lại biểu đồ pie
@@ -401,7 +419,7 @@ def update_chart_data(product_data):
     chart_data["value"][1] = product_data["false_touch"]
     chart_data["value"][2] = product_data["false_load"]
     chart_data["value"][3] = product_data["false_rgb"]
-    chart_data["value"][4] = product_data["false_other"]
+    # chart_data["value"][4] = product_data["false_other"]
 
 
 def update_polar_chart(fig, ax, chart_data):
@@ -459,35 +477,36 @@ def handleMsp(msg):
                     key.startswith('rgb') and value != 0]
     # Xác định trạng thái dựa trên danh sách các key bị lỗi
     if failed_touches:
-        mqtt_data['touch'] = f"Thất bại({','.join(failed_touches)})"
+        mqtt_data['touch'] = f"FAIL({','.join(failed_touches)})"
     else:
-        mqtt_data['touch'] = "Thành công"
+        mqtt_data['touch'] = "PASS"
 
     # Xác định trạng thái dựa trên danh sách các key bị lỗi
     if failed_loads:
-        mqtt_data['load'] = f"Thất bại({','.join(failed_loads)})"
+        mqtt_data['load'] = f"FAIL({','.join(failed_loads)})"
     else:
-        mqtt_data['load'] = "Thành công"
+        mqtt_data['load'] = "PASS"
 
     # Xác định trạng thái dựa trên danh sách các key bị lỗi
     if failed_rgbs:
-        mqtt_data['rgb'] = f"Thất bại({','.join(failed_rgbs)})"
+        mqtt_data['rgb'] = f"FAIL({','.join(failed_rgbs)})"
     else:
-        mqtt_data['rgb'] = "Thành công"
+        mqtt_data['rgb'] = "PASS"
     mqtt_data['id'] = message["data"]["addr"]
-    mqtt_data['rssi'] = message["data"]["rssi"]
-    mqtt_data['status'] = "Thành công" if (all(value == 0 for key, value in message["data"].items() if
+    # mqtt_data['rssi'] = message["data"]["rssi"]
+    mqtt_data['rssi'] = "PASS" if message["data"]["rssi"] <= -50 else "FAIL"
+    mqtt_data['status'] = "PASS" if (all(value == 0 for key, value in message["data"].items() if
                                                 key.startswith('touch') or key.startswith('load') or key.startswith(
                                                     'rgb'))
-                                            and message["data"]["rssi"] >= -60) else "Thất bại"
+                                            and message["data"]["rssi"] >= -60) else "FAIL"
 
     false_count = 0
     receivedError = {
         "false_rssi": 0,
         "false_touch": 0,
         "false_load": 0,
-        "false_rgb": 0,
-        "false_other": 0
+        "false_rgb": 0
+        # "false_other": 0
     }
     # Xác định loại lỗi từ dữ liệu MQTT và cập nhật product_data
     if message["data"]["rssi"] < -60:
@@ -508,13 +527,13 @@ def handleMsp(msg):
 
     # Nếu có nhiều hơn hai loại lỗi, thêm vào false_other
     if false_count > 1:
-        receivedError["false_other"] = 1
+        # receivedError["false_other"] = 1
         receivedError["false_rssi"] = 0
         receivedError["false_touch"] = 0
         receivedError["false_load"] = 0
         receivedError["false_rgb"] = 0
 
-    product_data["false_other"] = product_data["false_other"] + receivedError["false_other"]
+    # product_data["false_other"] = product_data["false_other"] + receivedError["false_other"]
     product_data["false_rssi"] = product_data["false_rssi"] + receivedError["false_rssi"]
     product_data["false_touch"] = product_data["false_touch"] + receivedError["false_touch"]
     product_data["false_load"] = product_data["false_load"] + receivedError["false_load"]
@@ -522,14 +541,14 @@ def handleMsp(msg):
     product_data["total"] += 1  # Tăng tổng số lần kiểm tra
     sizes[1] = (
         product_data["false_rssi"] + product_data["false_touch"] + product_data["false_load"] + product_data[
-    "false_rgb"] + product_data["false_other"])
+    "false_rgb"])
 
     sizes[0] = product_data["total"] - sizes[1]
     # In ra product_data để kiểm tra
-    print(product_data)
-    print(sizes)
+    # print(product_data)
+    # print(sizes)
     update_pie_chart(fig=fig_2, sizes=sizes)
-    update_error_pie_chart(fig3=fig_3, error_size = [product_data["false_rssi"],product_data["false_touch"],product_data["false_load"],product_data["false_rgb"], product_data["false_other"]])
+    update_error_pie_chart(fig3=fig_3, error_size = [product_data["false_rssi"],product_data["false_touch"],product_data["false_load"],product_data["false_rgb"]])
     update_chart_data(product_data)
     # update_polar_chart(fig=fig, ax=ax, chart_data=chart_data)
     mqtt_data['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())  # Thời gian nhận bản tin MQTT
@@ -537,15 +556,17 @@ def handleMsp(msg):
     # Cập nhật bảng
     update_table()
     canvas.itemconfig(text_touch, text=mqtt_data['touch'],
-                        fill="#64DA5A" if "Thành công" in mqtt_data['touch'] else "#fc2c03")
+                        fill="#64DA5A" if "PASS" in mqtt_data['touch'] else "#fc2c03")
     canvas.itemconfig(text_rgb, text=mqtt_data['rgb'],
-                        fill="#64DA5A" if "Thành công" in mqtt_data['rgb'] else "#fc2c03")
-    canvas.itemconfig(text_rssi, text=str(mqtt_data['rssi']),
-                        fill="#64DA5A" if mqtt_data['rssi'] >= -60 else "#fc2c03")
+                        fill="#64DA5A" if "PASS" in mqtt_data['rgb'] else "#fc2c03")
+    # canvas.itemconfig(text_rssi, text=str(mqtt_data['rssi']),
+    #                     fill="#64DA5A" if mqtt_data['rssi'] >= -60 else "#fc2c03")
+    canvas.itemconfig(text_rssi, text=mqtt_data['rssi'],
+                        fill="#64DA5A" if "PASS" in mqtt_data['rssi'] else "#fc2c03")
     canvas.itemconfig(text_load, text=mqtt_data['load'],
-                        fill="#64DA5A" if "Thành công" in mqtt_data['load'] else "#fc2c03")
+                        fill="#64DA5A" if "PASS" in mqtt_data['load'] else "#fc2c03")
     canvas.itemconfig(text_status, text=mqtt_data['status'],
-                        fill="#64DA5A" if "Thành công" in mqtt_data['status'] else "#fc2c03")
+                        fill="#64DA5A" if "PASS" in mqtt_data['status'] else "#fc2c03")
     canvas.itemconfig(text_total_value, text=product_data["total"])
     canvas.itemconfig(text_fail_value, text=sizes[1])
     canvas.itemconfig(text_success_value, text=sizes[0])   
@@ -569,10 +590,10 @@ def run():
 
 def readDataStartUp():
     if os.path.exists(file_path):
-        print("Messages stored in file:")
+        # print("Messages stored in file:")
         with open(file_path, "r") as file:
             for line in file:
-                print(line.strip())
+                # print(line.strip())
                 handleMsp(str(line.strip()))
     else:
         print("No stored messages found.")
@@ -580,22 +601,13 @@ def readDataStartUp():
 if __name__ == '__main__':
     # Tạo hai luồng riêng biệt để chạy GUI và MQTT client
     gui_thread = threading.Thread(target=drawUI)
-    print("tp1")
     mqtt_thread = threading.Thread(target=run)
-    print("tp2")
     gui_thread.daemon = True
-    print("tp3")
     mqtt_thread.daemon = True
-    print("tp4")
 
     # Khởi động cả hai luồng
     gui_thread.start()
-    print("tp5")
     mqtt_thread.start()
-    print("tp6")
 
-    # Chờ cả hai luồng hoàn thành
-    # gui_thread.join()
-    # mqtt_thread.join()
     while True:
         time.sleep(10)
