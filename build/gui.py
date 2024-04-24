@@ -39,7 +39,7 @@ import paho.mqtt.client as mqtt_client
 # topic = "python/mqtt"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
-broker = 'localhost'
+broker = '10.10.10.1'
 port = 1883
 topic = "/tooltest/hc/app/json_req"
 username ="RD"
@@ -149,7 +149,7 @@ def drawUI():
         1520.0,
         10.0,
         anchor="nw",
-        text="Nhân viên : Nguyễn Việt Anh",
+        text="Nhân viên : Nguyễn Văn Anh",
         fill="#000000",
         font=("Inter Bold", 20 * -1, "italic")
     )
